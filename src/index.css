@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  
+  --color-adarco-dark: #004D2C;
+  --color-adarco-primary: #00F58A;
+  --color-adarco-light: #CCDFD5;
+  --color-adarco-soft: #F1F8F4;
+  --color-graphite: #374151;
+  --color-offwhite: #F8F9FA;
+  
+  --shadow-soft: 0 4px 6px rgba(0, 0, 0, 0.05);
+  --shadow-neon: 0 0 15px rgba(0, 245, 138, 0.3);
+}
+
+@layer base {
+  body {
+    @apply font-sans bg-offwhite text-graphite antialiased;
+  }
+}
