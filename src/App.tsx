@@ -221,7 +221,10 @@ export default function App() {
         const rawDisplayName = call.originDisplayName || call.destinyDisplayName || mapping.name;
         // O mapeamento CONSULTANT_MAPPING já contém o nome limpo no arquivo constants.ts
         // Mas vamos garantir a limpeza se vier da API
-        const displayName = rawDisplayName ? cleanName(String(rawDisplayName)) : mapping.name;
+        let displayName = rawDisplayName ? cleanName(String(rawDisplayName)) : mapping.name;
+        if (mapping.isSupervisor) {
+          displayName = mapping.name;
+        }
 
         return {
           id: uniqueId,
@@ -487,7 +490,11 @@ export default function App() {
       if (!consultantName) return;
 
       // Use clean displayName if available, fallback to mapping name
-      const display = cleanName(displayName || consultantName);
+      let display = cleanName(displayName || consultantName);
+      const isSup = extension === '6005' || extension === '6038' || CONSULTANT_MAPPING[extension || ""]?.isSupervisor;
+      if (isSup) {
+        display = extension === '6005' ? 'Sup. Débora' : 'Sup. Marília';
+      }
 
       // Update global KPI counters
       if (type === 'Ativa') activeCountTotal++;
@@ -497,7 +504,7 @@ export default function App() {
       if (activeCounts[consultantName]) {
         activeCounts[consultantName].count++;
         // Maintain the most recent display name if it's more expressive
-        if (displayName) activeCounts[consultantName].name = cleanName(displayName);
+        if (displayName && !activeCounts[consultantName].isSupervisor) activeCounts[consultantName].name = cleanName(displayName);
       } else if (selectedTeam === 'Todos' || team === selectedTeam) {
           if (!activeCounts[consultantName]) {
             activeCounts[consultantName] = { 
@@ -505,7 +512,7 @@ export default function App() {
               count: 0, 
               team: team || "Inside Sales",
               extension: extension || "",
-              isSupervisor: extension === '6005' || extension === '6038' || CONSULTANT_MAPPING[extension || ""]?.isSupervisor
+              isSupervisor: isSup
             };
           }
           activeCounts[consultantName].count++;
@@ -515,7 +522,7 @@ export default function App() {
       if (successCounts[consultantName]) {
         if (status === 'Atendida') {
           successCounts[consultantName].count++;
-          if (displayName) successCounts[consultantName].name = cleanName(displayName);
+          if (displayName && !successCounts[consultantName].isSupervisor) successCounts[consultantName].name = cleanName(displayName);
         }
       } else if (selectedTeam === 'Todos' || team === selectedTeam) {
           if (!successCounts[consultantName]) {
@@ -524,7 +531,7 @@ export default function App() {
               count: 0, 
               team: team || "Inside Sales",
               extension: extension || "",
-              isSupervisor: extension === '6005' || extension === '6038' || CONSULTANT_MAPPING[extension || ""]?.isSupervisor
+              isSupervisor: isSup
             };
           }
           if (status === 'Atendida') successCounts[consultantName].count++;
@@ -539,7 +546,7 @@ export default function App() {
           total: 0,
           success: 0,
           totalDuration: 0,
-          isSupervisor: extension === '6005' || extension === '6038' || CONSULTANT_MAPPING[extension || ""]?.isSupervisor
+          isSupervisor: isSup
         };
       }
       const s = summary[consultantName];
@@ -588,7 +595,7 @@ export default function App() {
   }, [dateFilteredData]);
 
   return (
-    <div className="min-h-screen bg-offwhite dark:bg-slate-900 flex text-graphite dark:text-slate-200 font-sans selection:bg-adarco-light selection:text-adarco-dark border-none">
+    <div className="min-h-screen bg-offwhite dark:bg-[#05070f] flex text-graphite dark:text-slate-200 font-sans selection:bg-adarco-light selection:text-adarco-dark border-none">
       
       {/* Modal de Erro de Paginação */}
       <AnimatePresence>
@@ -986,7 +993,7 @@ export default function App() {
                           type="category" 
                           axisLine={false} 
                           tickLine={false} 
-                          style={{ fontSize: '11px', fontWeight: 600, fill: '#475569' }}
+                          style={{ fontSize: '11px', fontWeight: 600, fill: isDarkMode ? '#FFFFFF' : '#475569' }}
                           width={100}
                         />
                         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(20, 61, 45, 0.05)' }} />
@@ -999,7 +1006,7 @@ export default function App() {
                            {activeCallsByConsultant.map((entry, index) => (
                               <Cell 
                                 key={`cell-${index}`} 
-                                fill={entry.isSupervisor ? '#3B82F6' : (entry.team === TeamName.DEBORA ? '#064E3B' : '#10B981')} 
+                                fill={entry.isSupervisor ? '#3B82F6' : (entry.team === TeamName.DEBORA ? '#064E3B' : '#00F58A')} 
                               />
                            ))}
                         </Bar>
@@ -1033,7 +1040,7 @@ export default function App() {
                           type="category" 
                           axisLine={false} 
                           tickLine={false} 
-                          style={{ fontSize: '11px', fontWeight: 600, fill: '#475569' }}
+                          style={{ fontSize: '11px', fontWeight: 600, fill: isDarkMode ? '#FFFFFF' : '#475569' }}
                           width={100}
                         />
                         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(16, 185, 129, 0.05)' }} />
@@ -1053,12 +1060,12 @@ export default function App() {
                                  />
                                );
                              }
-                             // Lógica Visual: Verde para quem está acima da meta (ex: > 10 chamadas no período)
                              const isHighPerformance = entry.count >= 10; 
+                             const teamColor = entry.team === TeamName.DEBORA ? '#064E3B' : '#00F58A';
                              return (
                                <Cell 
                                  key={`cell-${index}`} 
-                                 fill={isHighPerformance ? '#166534' : '#94A3B8'} 
+                                 fill={teamColor} 
                                  fillOpacity={isHighPerformance ? 1 : 0.6}
                                />
                              );
@@ -1106,14 +1113,14 @@ export default function App() {
                                 endAngle={-270}
                               >
                                 <Cell fill={color} className="drop-shadow-sm" />
-                                <Cell fill="#F1F5F9" />
+                                <Cell fill={isDarkMode ? '#1e293b' : '#F1F5F9'} />
                               </Pie>
                               <Tooltip 
                                 content={({ active, payload }) => {
                                   if (active && payload && payload.length) {
                                     return (
-                                      <div className="bg-white px-3 py-2 rounded-lg shadow-xl border border-slate-50 text-[10px] font-bold">
-                                        <span className={payload[0].name === 'Atendidas' ? "text-adarco-dark" : "text-slate-400"}>
+                                      <div className="bg-white dark:bg-slate-800 px-3 py-2 rounded-lg shadow-xl border border-slate-50 dark:border-slate-700 text-[10px] font-bold text-slate-700 dark:text-slate-200">
+                                        <span>
                                           {payload[0].name}: {payload[0].value}
                                         </span>
                                       </div>
@@ -1125,17 +1132,17 @@ export default function App() {
                             </PieChart>
                           </ResponsiveContainer>
                           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                            <span className="text-3xl font-black text-slate-800 tracking-tighter leading-none">{efficiency}%</span>
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Score</span>
+                            <span className="text-3xl font-black text-slate-800 dark:text-slate-100 tracking-tighter leading-none">{efficiency}%</span>
+                            <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">Score</span>
                           </div>
                         </div>
                         <div className="mt-4 text-center">
-                          <div className="px-4 py-1.5 bg-slate-50 rounded-full border border-slate-100 flex items-center gap-2">
+                          <div className="px-4 py-1.5 bg-slate-50 dark:bg-slate-900 rounded-full border border-slate-100 dark:border-slate-800/80 flex items-center gap-2">
                             <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
-                            <h4 className="text-xs font-black text-slate-700 uppercase tracking-tight">{team.name}</h4>
+                            <h4 className="text-xs font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight">{team.name}</h4>
                           </div>
-                          <p className="mt-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                            <span className="text-slate-800">{team.success}</span> de {team.total} <span className="ml-1 text-slate-300">atendidas</span>
+                          <p className="mt-3 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                            <span className="text-slate-800 dark:text-slate-200">{team.success}</span> de <span className="text-slate-600 dark:text-slate-400">{team.total}</span> <span className="ml-1 text-slate-300 dark:text-slate-500">atendidas</span>
                           </p>
                         </div>
                       </div>
