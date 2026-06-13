@@ -457,15 +457,16 @@ export default function App() {
   }, [dateFilteredData, indices, selectedTeam, selectedConsultant, searchQuery]);
 
   const dashboardStats = useMemo(() => {
-    const activeCounts: Record<string, { name: string, count: number, team: string }> = {};
-    const successCounts: Record<string, { name: string, count: number, team: string }> = {};
+    const activeCounts: Record<string, { name: string, count: number, team: string, extension: string, isSupervisor?: boolean }> = {};
+    const successCounts: Record<string, { name: string, count: number, team: string, extension: string, isSupervisor?: boolean }> = {};
     const summary: Record<string, { 
       name: string, 
       team: string, 
       extension: string,
       total: number, 
       success: number, 
-      totalDuration: number 
+      totalDuration: number,
+      isSupervisor?: boolean
     }> = {};
 
     // Initialize counts for all consultants in selected team
@@ -473,8 +474,8 @@ export default function App() {
       if (selectedTeam === 'Todos' || c.team === (selectedTeam as any)) {
         // Use clean name for display
         const displayName = cleanName(c.name);
-        activeCounts[c.name] = { name: displayName, count: 0, team: c.team };
-        successCounts[c.name] = { name: displayName, count: 0, team: c.team };
+        activeCounts[c.name] = { name: displayName, count: 0, team: c.team, extension: c.extension, isSupervisor: c.isSupervisor };
+        successCounts[c.name] = { name: displayName, count: 0, team: c.team, extension: c.extension, isSupervisor: c.isSupervisor };
       }
     });
 
@@ -499,7 +500,13 @@ export default function App() {
         if (displayName) activeCounts[consultantName].name = cleanName(displayName);
       } else if (selectedTeam === 'Todos' || team === selectedTeam) {
           if (!activeCounts[consultantName]) {
-            activeCounts[consultantName] = { name: display, count: 0, team: team || "Inside Sales" };
+            activeCounts[consultantName] = { 
+              name: display, 
+              count: 0, 
+              team: team || "Inside Sales",
+              extension: extension || "",
+              isSupervisor: extension === '6005' || extension === '6038' || CONSULTANT_MAPPING[extension || ""]?.isSupervisor
+            };
           }
           activeCounts[consultantName].count++;
       }
@@ -511,8 +518,14 @@ export default function App() {
           if (displayName) successCounts[consultantName].name = cleanName(displayName);
         }
       } else if (selectedTeam === 'Todos' || team === selectedTeam) {
-         if (!successCounts[consultantName]) {
-            successCounts[consultantName] = { name: display, count: 0, team: team || "Inside Sales" };
+          if (!successCounts[consultantName]) {
+            successCounts[consultantName] = { 
+              name: display, 
+              count: 0, 
+              team: team || "Inside Sales",
+              extension: extension || "",
+              isSupervisor: extension === '6005' || extension === '6038' || CONSULTANT_MAPPING[extension || ""]?.isSupervisor
+            };
           }
           if (status === 'Atendida') successCounts[consultantName].count++;
       }
@@ -525,7 +538,8 @@ export default function App() {
           extension: extension,
           total: 0,
           success: 0,
-          totalDuration: 0
+          totalDuration: 0,
+          isSupervisor: extension === '6005' || extension === '6038' || CONSULTANT_MAPPING[extension || ""]?.isSupervisor
         };
       }
       const s = summary[consultantName];
@@ -983,7 +997,10 @@ export default function App() {
                           barSize={32}
                         >
                            {activeCallsByConsultant.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.team === TeamName.DEBORA ? '#064E3B' : '#10B981'} />
+                              <Cell 
+                                key={`cell-${index}`} 
+                                fill={entry.isSupervisor ? '#3B82F6' : (entry.team === TeamName.DEBORA ? '#064E3B' : '#10B981')} 
+                              />
                            ))}
                         </Bar>
                       </BarChart>
@@ -1027,6 +1044,15 @@ export default function App() {
                           barSize={32}
                         >
                            {successCallsByConsultant.map((entry, index) => {
+                             if (entry.isSupervisor) {
+                               return (
+                                 <Cell 
+                                   key={`cell-${index}`} 
+                                   fill="#3B82F6" 
+                                   fillOpacity={1}
+                                 />
+                               );
+                             }
                              // Lógica Visual: Verde para quem está acima da meta (ex: > 10 chamadas no período)
                              const isHighPerformance = entry.count >= 10; 
                              return (
@@ -1143,12 +1169,26 @@ export default function App() {
                             <div className="flex items-center gap-3">
                               <div className={cn(
                                 "w-9 h-9 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm transition-transform group-hover:scale-110",
-                                item.team === TeamName.DEBORA ? "bg-adarco-dark text-white" : "bg-adarco-light text-adarco-dark"
+                                item.isSupervisor 
+                                  ? "bg-blue-600 dark:bg-blue-500 text-white" 
+                                  : (item.team === TeamName.DEBORA ? "bg-adarco-dark text-white" : "bg-adarco-light text-adarco-dark")
                               )}>
                                 {item.name[0]}
                               </div>
                               <div>
-                                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{item.name}</p>
+                                <div className="flex items-center gap-2">
+                                  <p className={cn(
+                                    "text-sm font-bold",
+                                    item.isSupervisor 
+                                      ? "text-blue-600 dark:text-blue-400 font-extrabold" 
+                                      : "text-slate-700 dark:text-slate-200"
+                                  )}>{item.name}</p>
+                                  {item.isSupervisor && (
+                                    <span className="text-[9px] font-extrabold tracking-widest uppercase bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-lg border border-blue-100 dark:border-blue-900/30">
+                                      Sup
+                                    </span>
+                                  )}
+                                </div>
                                 <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">{item.team}</p>
                               </div>
                             </div>
@@ -1166,7 +1206,10 @@ export default function App() {
                               </span>
                               <div className="w-12 h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                                 <div 
-                                  className="h-full bg-adarco-primary rounded-full" 
+                                  className={cn(
+                                    "h-full rounded-full",
+                                    item.isSupervisor ? "bg-blue-500" : "bg-adarco-primary"
+                                  )}
                                   style={{ width: `${item.total > 0 ? (item.success / item.total) * 100 : 0}%` }}
                                 />
                               </div>

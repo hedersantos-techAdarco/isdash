@@ -7,6 +7,7 @@ export interface Consultant {
   extension: string;
   name: string;
   team: TeamName;
+  isSupervisor?: boolean;
 }
 
 export interface ApiCallData {

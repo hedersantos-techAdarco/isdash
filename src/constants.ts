@@ -2,6 +2,7 @@ import { Consultant, TeamName } from './types.ts';
 
 export const CONSULTANT_MAPPING: Record<string, Consultant> = {
   // Time Débora (Supervisora: 6005)
+  "6005": { extension: "6005", name: "Sup. Débora", team: TeamName.DEBORA, isSupervisor: true },
   "6028": { extension: "6028", name: "Charlene", team: TeamName.DEBORA },
   "6002": { extension: "6002", name: "Erick", team: TeamName.DEBORA },
   "6007": { extension: "6007", name: "Everton", team: TeamName.DEBORA },
@@ -12,6 +13,7 @@ export const CONSULTANT_MAPPING: Record<string, Consultant> = {
   "6011": { extension: "6011", name: "Auryane", team: TeamName.DEBORA },
 
   // Time Marília (Supervisora: 6038)
+  "6038": { extension: "6038", name: "Sup. Marília", team: TeamName.MARILIA, isSupervisor: true },
   "6036": { extension: "6036", name: "Aila", team: TeamName.MARILIA },
   "6026": { extension: "6026", name: "Kelvyn", team: TeamName.MARILIA },
   "6017": { extension: "6017", name: "Felipe", team: TeamName.MARILIA },
