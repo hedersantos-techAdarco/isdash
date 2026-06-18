@@ -10,7 +10,7 @@ export const CONSULTANT_MAPPING: Record<string, Consultant> = {
   "6045": { extension: "6045", name: "Marcos", team: TeamName.DEBORA },
   "6046": { extension: "6046", name: "Karina", team: TeamName.DEBORA },
   "6029": { extension: "6029", name: "Rute", team: TeamName.DEBORA },
-  "6011": { extension: "6011", name: "Auryane", team: TeamName.DEBORA },
+  "6064": { extension: "6064", name: "Auryane", team: TeamName.DEBORA },
 
   // Time Marília (Supervisora: 6038)
   "6038": { extension: "6038", name: "Sup. Marília", team: TeamName.MARILIA, isSupervisor: true },
