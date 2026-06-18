@@ -503,8 +503,6 @@ export default function App() {
       // Volume de Chamadas
       if (activeCounts[consultantName]) {
         activeCounts[consultantName].count++;
-        // Maintain the most recent display name if it's more expressive
-        if (displayName && !activeCounts[consultantName].isSupervisor) activeCounts[consultantName].name = cleanName(displayName);
       } else if (selectedTeam === 'Todos' || team === selectedTeam) {
           if (!activeCounts[consultantName]) {
             activeCounts[consultantName] = { 
@@ -522,7 +520,6 @@ export default function App() {
       if (successCounts[consultantName]) {
         if (status === 'Atendida') {
           successCounts[consultantName].count++;
-          if (displayName && !successCounts[consultantName].isSupervisor) successCounts[consultantName].name = cleanName(displayName);
         }
       } else if (selectedTeam === 'Todos' || team === selectedTeam) {
           if (!successCounts[consultantName]) {
