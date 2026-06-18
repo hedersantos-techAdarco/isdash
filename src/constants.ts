@@ -8,7 +8,7 @@ export const CONSULTANT_MAPPING: Record<string, Consultant> = {
   "6007": { extension: "6007", name: "Everton", team: TeamName.DEBORA },
   "6006": { extension: "6006", name: "Rodrigo", team: TeamName.DEBORA },
   "6045": { extension: "6045", name: "Marcos", team: TeamName.DEBORA },
-  "6046": { extension: "6046", name: "Karina", team: TeamName.DEBORA },
+  //"6046": { extension: "6046", name: "Karina", team: TeamName.DEBORA },
   "6029": { extension: "6029", name: "Rute", team: TeamName.DEBORA },
   "6046": { extension: "6046", name: "Auryane", team: TeamName.DEBORA },
 
